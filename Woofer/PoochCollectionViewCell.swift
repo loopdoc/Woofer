@@ -13,7 +13,7 @@ class PoochCollectionViewCell: UICollectionViewCell {
 
     var poochPicture : PoochPicture? {
         didSet {
-            imageView.image = poochPicture?.image
+            imageView.image = poochPicture?.thumbnail
         }
     }
     
@@ -26,7 +26,7 @@ class PoochCollectionViewCell: UICollectionViewCell {
     }
     
     func configure(_ poochPicture: PoochPicture) {
-        if poochPicture.image == nil {
+        if poochPicture.thumbnail == nil {
             listenForImageUpdateNotification(poochPicture.urlString)
             poochPicture.fetchImage()
         }
@@ -48,7 +48,7 @@ extension PoochCollectionViewCell {
             }
             return
         }
-        imageView.image = poochPicture?.image
+        imageView.image = poochPicture?.thumbnail
     }
 }
 

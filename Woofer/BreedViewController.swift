@@ -16,6 +16,10 @@ class BreedViewController: UIViewController, PoochCollectionViewControllerDelega
     
     @IBOutlet var tableView: UITableView!
     
+    @IBOutlet var poochCollectionContainerView: UIView!
+    
+    let opertionQueue = OperationQueue()
+    
     let searchController = UISearchController(searchResultsController: nil)
     var isSearchBarEmpty : Bool {
         return searchController.searchBar.text?.isEmpty ?? true
@@ -48,26 +52,30 @@ class BreedViewController: UIViewController, PoochCollectionViewControllerDelega
 extension BreedViewController {
     //MARK: - Fetch
     func fetchBreeds() {
-        DispatchQueue.global(qos: .userInteractive).async {
-            do {
-                guard let url = URL(string: Breed.allBreedsListSource) else {
-                    assertionFailure("Can't create URL from allBreedsListSource")
-                    return
+        self.opertionQueue.maxConcurrentOperationCount = 5
+        let blockOperation = BlockOperation(){ [unowned self] in
+            autoreleasepool {
+                do {
+                    guard let url = URL(string: Breed.allBreedsListSource) else {
+                        assertionFailure("Can't create URL from allBreedsListSource")
+                        return
+                    }
+                    let data = try Data(contentsOf: url)
+                    let breedMessageCodeable = try JSONDecoder().decode(BreedMessageCodeable.self, from: data)
+                    let processedBreeds = Breed.processNamedBreeds(breedMessageCodeable.message)
+                    DispatchQueue.main.async { [unowned self] in
+                        self.breeds = processedBreeds.sorted(by: <)
+                        // Initial data load
+                        self.updateSnapshot(animated: false)
+                    }
+                } catch {
+                    print("\(error)")
+                    // TODO: Show an alert informing the user there is a problem
+                    assertionFailure()
                 }
-                let data = try Data(contentsOf: url)
-                let breedMessageCodeable = try JSONDecoder().decode(BreedMessageCodeable.self, from: data)
-                let processedBreeds = Breed.processNamedBreeds(breedMessageCodeable.message)
-                DispatchQueue.main.async { [unowned self] in
-                    self.breeds = processedBreeds.sorted(by: <)
-                    // Initial data load
-                    self.updateSnapshot(animated: false)
-                }
-            } catch {
-                print("\(error)")
-                // TODO: Show an alert informing the user there is a problem
-                assertionFailure()
             }
         }
+        opertionQueue.addOperation(blockOperation)
     }
     
 }
@@ -124,9 +132,9 @@ extension BreedViewController {
     func filterBreeds(for query: String?) {
         filteredBreeds = breeds.filter { (breed : Breed) -> Bool in
             // Use the contains to get general matching
-            breed.contains(query)
+//            breed.contains(query)
             // However, we can also search by prefix
-//            breed.hasPrefix(query)
+            breed.hasPrefix(query)
         }
         updateSnapshot(animated: true)
         poochCollectionViewController.updateSnapshot(animated: true)

@@ -8,8 +8,6 @@
 
 import UIKit
 
-private let reuseIdentifier = "Cell"
-
 protocol PoochCollectionViewControllerDelegate : class {
     var shouldShowPoochPictures : Bool { get }
     var filteredBreeds : [Breed] { get }
@@ -29,6 +27,8 @@ class PoochCollectionViewController: UICollectionViewController {
     
     var datasource : UICollectionViewDiffableDataSource<Breed, PoochPicture>! = nil
     
+    var currentlyShownBreeds : Set<Breed> = []
+    
     var showPictures : Bool {
         let count = delegate?.filteredBreeds.count ?? 0
         return count > 0
@@ -37,10 +37,6 @@ class PoochCollectionViewController: UICollectionViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureDataSource()
-        // Register cell classes
-        self.collectionView!.register(UICollectionViewCell.self, forCellWithReuseIdentifier: reuseIdentifier)
-
-        // Do any additional setup after loading the view.
     }
 
 }
@@ -67,19 +63,32 @@ extension PoochCollectionViewController  {
         
         var snapshot = NSDiffableDataSourceSnapshot<Breed, PoochPicture>()
         if delegate.shouldShowPoochPictures == false {
-            if snapshot.numberOfItems > 0 || snapshot.numberOfSections > 0 {
-                snapshot.deleteAllItems()
-                datasource.apply(snapshot, animatingDifferences: animated)
-            }
+            snapshot.deleteAllItems()
+            datasource.apply(snapshot, animatingDifferences: animated)
+            updateFetching([])
         } else {
             let breeds = delegate.filteredBreeds
             snapshot.appendSections(breeds)
             for breed in breeds {
-                let items = breed.poochPictures.sorted()
+                let items = breed.poochPictures
                 snapshot.appendItems(items, toSection: breed)
                 datasource.apply(snapshot, animatingDifferences: animated)
             }
+            updateFetching(breeds)
         }
+    }
+    
+    func updateFetching(_ toBeShownBreeds: [Breed]) {
+        guard toBeShownBreeds.count > 0 else {
+            _ = currentlyShownBreeds.map{ $0.suspendImageFetching() }
+            currentlyShownBreeds = []
+            return
+        }
+        let toBeShownBreedsSet = Set(toBeShownBreeds)
+        let notBeingShownAnymoreBreeds = currentlyShownBreeds.subtracting(toBeShownBreedsSet)
+        _ = notBeingShownAnymoreBreeds.map{ $0.suspendImageFetching() }
+        currentlyShownBreeds = toBeShownBreedsSet
+        _ = currentlyShownBreeds.map{ $0.resumeImageFetching() }
     }
     
 }

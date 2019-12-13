@@ -40,37 +40,20 @@ struct BreedImageMessageCodeable: Codable {
         self.message = try container.decode([String].self, forKey: .message)
     }
     
-    func encode(to encoder: Encoder) throws {
-        //No-op, we're not using this but the stub needs to be here
-        // for protocol conformance
-    }
+    func encode(to encoder: Encoder) throws {  }
 }
 
-final class Breed : Hashable, Comparable {
+final class Breed : Hashable, PoochPictureDelegate {
+    
     static let allBreedsListSource = "https://dog.ceo/api/breeds/list/all"
     static let breedsImagesPrefix = "https://dog.ceo/api/breed/"
     static let breedsImagesPostfix = "/images"
     
-    static func < (lhs: Breed, rhs: Breed) -> Bool {
-        return lhs.displayName < rhs.displayName
-    }
-
-    static func ==(lhs: Breed, rhs: Breed) -> Bool {
-        return lhs.identifier == rhs.identifier
-    }
-
     let name : String
     let subbreedName: String?
-    var lookupName : String {
-        if let subbreedName = subbreedName {
-            return "\(name)-\(subbreedName)"
-        } else {
-            return "\(name)"
-        }
-    }
     
     var poochPictures : [PoochPicture] = []
-
+    
     var displayName : String {
         if let subbreedName = subbreedName {
             return "\(subbreedName) \(name)"
@@ -78,18 +61,35 @@ final class Breed : Hashable, Comparable {
             return "\(name)"
         }
     }
-    let identifier = UUID()
     
-    init(name: String, subbreedName: String? = nil) {
-        self.name = name
-        self.subbreedName = subbreedName
-    }
+    let identifier = UUID()
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(identifier)
     }
     
+    let imageFetchOperationQueue = OperationQueue()
+    
+    init(name: String, subbreedName: String? = nil) {
+        self.name = name
+        self.subbreedName = subbreedName
+        imageFetchOperationQueue.maxConcurrentOperationCount = 3
+    }
+    
+    
+}
 
+extension Breed : Comparable {
+    //MARK: Comparison
+    
+    static func < (lhs: Breed, rhs: Breed) -> Bool {
+        return lhs.displayName < rhs.displayName
+    }
+    
+    static func ==(lhs: Breed, rhs: Breed) -> Bool {
+        return lhs.identifier == rhs.identifier
+    }
+    
     func contains(_ query: String?) -> Bool {
         guard let query = query else { return true }
         guard !query.isEmpty else { return true }
@@ -104,6 +104,23 @@ final class Breed : Hashable, Comparable {
         return name.lowercased().hasPrefix(lowerCasedQuery) || (subbreedName?.lowercased().hasPrefix(lowerCasedQuery) ?? false)
     }
     
+}
+
+extension Breed {
+    //MARK: Queue Management
+    
+    func suspendImageFetching(){
+        imageFetchOperationQueue.isSuspended = true
+    }
+    
+    func resumeImageFetching(){
+        imageFetchOperationQueue.isSuspended = false
+    }
+    
+}
+
+extension Breed {
+    //MARK: - Fetch and Process Image Sources
     class func processNamedBreeds(_ breedNames : [String : [String]]) -> [Breed] {
         var processedBreeds : [Breed] = []
         for (breedName, subbreedNames) in breedNames {
@@ -120,7 +137,7 @@ final class Breed : Hashable, Comparable {
                 }
                 fetchImageSources(newSubbreeds)
             }
-
+            
         }
         return processedBreeds
     }
@@ -132,50 +149,48 @@ final class Breed : Hashable, Comparable {
         }
         let imageSourceString = breedsImagesPrefix + breedName + breedsImagesPostfix
         DispatchQueue.global(qos: .userInteractive).async {
-            guard let url = URL(string: imageSourceString) else {
-                assertionFailure("Can't create URL from imageSourceString")
-                return
-            }
-            do {
-                let data = try Data(contentsOf: url)
-                let breedImageMessageCodeable = try JSONDecoder().decode(BreedImageMessageCodeable.self, from: data)
-                processBreedImageSources(breeds, breedImageSources: breedImageMessageCodeable.message)
-            } catch {
-                return
+            autoreleasepool{
+                guard let url = URL(string: imageSourceString) else {
+                    assertionFailure("Can't create URL from imageSourceString")
+                    return
+                }
+                do {
+                    let data = try Data(contentsOf: url)
+                    let breedImageMessageCodeable = try JSONDecoder().decode(BreedImageMessageCodeable.self, from: data)
+                    processBreedImageSources(breeds, breedImageSources: breedImageMessageCodeable.message)
+                } catch {
+                    return
+                }
             }
         }
     }
     
-    /**
-     The image sources that come from the server only do so based on the breed name with
-     the subbreed images combined.  The text contains a "name-subbreedName"  So we
-     use that to parse out the sources and assign to the Breed objects based on both
-     name and subbreedName
-     
-     - Complexity: O(NxM) where N is number of breedImageSources and M is the number of breeds
-     */
     class func processBreedImageSources(_ breeds : [Breed], breedImageSources: [String]) {
-        if breeds.count == 1 {
-            breeds.first?.poochPictures = breedImageSources.map{ PoochPicture(urlString: $0)}
-        } else {
-            let values = [[String]].init(repeating: [], count: breeds.count)
-            let subbreedNames = breeds.compactMap{ $0.subbreedName }
-            var imageSourcesBySubbreedName = Dictionary(uniqueKeysWithValues: zip(subbreedNames, values))
-            for imageSourceString in breedImageSources {
-                guard let startIndex = imageSourceString.firstIndex(of: "-") else { continue }
-                let subbreedSourceString = imageSourceString[startIndex...]
-                for subbreedName in subbreedNames {
-                    if subbreedSourceString.dropFirst().hasPrefix(subbreedName) {
-                        imageSourcesBySubbreedName[subbreedName]?.append(imageSourceString)
-                        continue
+        autoreleasepool {
+            if breeds.count == 1 {
+                guard let breed = breeds.first else { return }
+                breed.poochPictures = breedImageSources.map{ PoochPicture(urlString: $0, delegate: breed)}
+            } else {
+                let values = [[String]].init(repeating: [], count: breeds.count)
+                let subbreedNames = breeds.compactMap{ $0.subbreedName }
+                var imageSourcesBySubbreedName = Dictionary(uniqueKeysWithValues: zip(subbreedNames, values))
+                for imageSourceString in breedImageSources {
+                    guard let startIndex = imageSourceString.firstIndex(of: "-") else { continue }
+                    let subbreedSourceString = imageSourceString[startIndex...]
+                    for subbreedName in subbreedNames {
+                        if subbreedSourceString.dropFirst().hasPrefix(subbreedName) {
+                            imageSourcesBySubbreedName[subbreedName]?.append(imageSourceString)
+                            continue
+                        }
+                        
                     }
-                    
                 }
-            }
-            for breed in breeds {
-                guard let subbreedName = breed.subbreedName
-                    , let subbreedImageSources = imageSourcesBySubbreedName[subbreedName] else { continue }
-                breed.poochPictures = subbreedImageSources.map{ PoochPicture(urlString: $0)}
+                for breed in breeds {
+                    guard let subbreedName = breed.subbreedName
+                        , let subbreedImageSources = imageSourcesBySubbreedName[subbreedName] else { continue }
+                    breed.poochPictures = subbreedImageSources.map { PoochPicture(urlString: $0, delegate: breed)
+                    }
+                }
             }
         }
     }
