@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class BreedViewController: UIViewController, PoochCollectionViewControllerDelegate {
 
     enum Section {
         case main
@@ -20,6 +20,8 @@ class ViewController: UIViewController {
     var isSearchBarEmpty : Bool {
         return searchController.searchBar.text?.isEmpty ?? true
     }
+
+    var poochCollectionViewController : PoochCollectionViewController! = nil
     
     var dataSource : UITableViewDiffableDataSource<Section, Breed>! = nil
     
@@ -29,10 +31,10 @@ class ViewController: UIViewController {
         }
     }
     
-    
     var filteredBreeds : [Breed] = []
-
-    var didLayout = false
+    var shouldShowPoochPictures: Bool {
+        return !(filteredBreeds.count == 0 || filteredBreeds.count == breeds.count)
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,7 +45,7 @@ class ViewController: UIViewController {
 
 }
 
-extension ViewController {
+extension BreedViewController {
     //MARK: - Fetch
     func fetchBreeds() {
         DispatchQueue.global(qos: .userInteractive).async {
@@ -67,15 +69,29 @@ extension ViewController {
             }
         }
     }
+    
+}
+
+extension BreedViewController {
+    //MARK: Navigation
+
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "poochCollectionViewEmbedSegue" {
+            guard let destinationVC = segue.destination as? PoochCollectionViewController else {
+                return
+            }
+            poochCollectionViewController = destinationVC
+            poochCollectionViewController.delegate = self
+        }
+    }
 
 }
 
-extension ViewController {
+extension BreedViewController {
     //MARK: Diffable Datasource
     private func configureDataSource() {
         dataSource = UITableViewDiffableDataSource<Section, Breed>(tableView: tableView){
             (tableView: UITableView, indexPath: IndexPath, breed: Breed) -> UITableViewCell in
-//            let cell = tableView.dequeueReusableCell(withIdentifier: BreedTableViewCell.reuseIdentifier, for: indexPath) as! BreedTableViewCell
             let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
             cell.textLabel?.text = breed.displayName
             return cell
@@ -94,7 +110,7 @@ extension ViewController {
     
 }
 
-extension ViewController {
+extension BreedViewController {
     //MARK: Search
 
     func configureSearchController() {
@@ -107,17 +123,18 @@ extension ViewController {
     
     func filterBreeds(for query: String?) {
         filteredBreeds = breeds.filter { (breed : Breed) -> Bool in
-            breed.contains(query: query)
-        }
-        if query == nil {
-            // Clear previous search
+            // Use the contains to get general matching
+            breed.contains(query)
+            // However, we can also search by prefix
+//            breed.hasPrefix(query)
         }
         updateSnapshot(animated: true)
+        poochCollectionViewController.updateSnapshot(animated: true)
     }
     
 }
 
-extension ViewController : UISearchResultsUpdating {
+extension BreedViewController : UISearchResultsUpdating {
 
     func updateSearchResults(for searchController: UISearchController) {
         let query = searchController.searchBar.text
@@ -125,3 +142,4 @@ extension ViewController : UISearchResultsUpdating {
     }
 
 }
+

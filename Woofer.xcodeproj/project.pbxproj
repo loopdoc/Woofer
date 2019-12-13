@@ -9,23 +9,29 @@
 /* Begin PBXBuildFile section */
 		83BE405023A2DD0700975034 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BE404F23A2DD0700975034 /* AppDelegate.swift */; };
 		83BE405223A2DD0700975034 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BE405123A2DD0700975034 /* SceneDelegate.swift */; };
-		83BE405423A2DD0700975034 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BE405323A2DD0700975034 /* ViewController.swift */; };
 		83BE405723A2DD0700975034 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 83BE405523A2DD0700975034 /* Main.storyboard */; };
 		83BE405923A2DD0900975034 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 83BE405823A2DD0900975034 /* Assets.xcassets */; };
 		83BE405C23A2DD0900975034 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 83BE405A23A2DD0900975034 /* LaunchScreen.storyboard */; };
 		83BE406423A2DDB000975034 /* Breed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BE406323A2DDB000975034 /* Breed.swift */; };
+		83BE406823A307CD00975034 /* PoochCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BE406723A307CD00975034 /* PoochCollectionViewController.swift */; };
+		83BE406A23A30A3B00975034 /* PoochPicture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BE406923A30A3B00975034 /* PoochPicture.swift */; };
+		83BE406C23A30F4D00975034 /* PoochCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BE406B23A30F4D00975034 /* PoochCollectionViewCell.swift */; };
+		83BE407223A318B100975034 /* BreedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BE407123A318B100975034 /* BreedViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		83BE404C23A2DD0700975034 /* Woofer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Woofer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		83BE404F23A2DD0700975034 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		83BE405123A2DD0700975034 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		83BE405323A2DD0700975034 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		83BE405623A2DD0700975034 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		83BE405823A2DD0900975034 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		83BE405B23A2DD0900975034 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		83BE405D23A2DD0900975034 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		83BE406323A2DDB000975034 /* Breed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Breed.swift; sourceTree = "<group>"; };
+		83BE406723A307CD00975034 /* PoochCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoochCollectionViewController.swift; sourceTree = "<group>"; };
+		83BE406923A30A3B00975034 /* PoochPicture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoochPicture.swift; sourceTree = "<group>"; };
+		83BE406B23A30F4D00975034 /* PoochCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoochCollectionViewCell.swift; sourceTree = "<group>"; };
+		83BE407123A318B100975034 /* BreedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreedViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,12 +66,15 @@
 			children = (
 				83BE404F23A2DD0700975034 /* AppDelegate.swift */,
 				83BE405123A2DD0700975034 /* SceneDelegate.swift */,
-				83BE405323A2DD0700975034 /* ViewController.swift */,
 				83BE405523A2DD0700975034 /* Main.storyboard */,
 				83BE405823A2DD0900975034 /* Assets.xcassets */,
 				83BE405A23A2DD0900975034 /* LaunchScreen.storyboard */,
 				83BE405D23A2DD0900975034 /* Info.plist */,
 				83BE406323A2DDB000975034 /* Breed.swift */,
+				83BE407123A318B100975034 /* BreedViewController.swift */,
+				83BE406923A30A3B00975034 /* PoochPicture.swift */,
+				83BE406723A307CD00975034 /* PoochCollectionViewController.swift */,
+				83BE406B23A30F4D00975034 /* PoochCollectionViewCell.swift */,
 			);
 			path = Woofer;
 			sourceTree = "<group>";
@@ -142,9 +151,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				83BE406423A2DDB000975034 /* Breed.swift in Sources */,
-				83BE405423A2DD0700975034 /* ViewController.swift in Sources */,
+				83BE406823A307CD00975034 /* PoochCollectionViewController.swift in Sources */,
 				83BE405023A2DD0700975034 /* AppDelegate.swift in Sources */,
+				83BE406A23A30A3B00975034 /* PoochPicture.swift in Sources */,
+				83BE407223A318B100975034 /* BreedViewController.swift in Sources */,
 				83BE405223A2DD0700975034 /* SceneDelegate.swift in Sources */,
+				83BE406C23A30F4D00975034 /* PoochCollectionViewCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
