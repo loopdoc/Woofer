@@ -27,11 +27,57 @@ final class PoochPicture : Comparable, Hashable {
 
     weak var delegate : PoochPictureDelegate?
     
-    var urlString : String
-    var image : UIImage?
-    var thumbnail: UIImage?
+    let urlString : String
 
-    var imageFetchTimestamp = Date.distantFuture
+    let imageQueue = DispatchQueue(label: "PoochPicture.imageQueue", qos: .userInteractive, attributes: [], autoreleaseFrequency: .never)
+    
+    var _image : UIImage?
+    var image : UIImage? {
+        get {
+            return imageQueue.sync {
+                return _image
+            }
+        }
+        set {
+            return imageQueue.sync {
+                return _image = newValue
+            }
+        }
+    }
+    
+    let thumbnailQueue = DispatchQueue(label: "PoochPicture.thumbnailQueue", qos: .userInteractive, attributes: [], autoreleaseFrequency: .never)
+    
+    var _thumbnail : UIImage?
+    var thumbnail : UIImage? {
+        get {
+            return thumbnailQueue.sync {
+                return _thumbnail
+            }
+        }
+        set {
+            return thumbnailQueue.sync {
+                return _thumbnail = newValue
+            }
+        }
+    }
+    
+    let imageFetchTimestampQueue = DispatchQueue(label: "PoochPicture.imageFetchTimestampQueue", qos: .userInteractive, attributes: [], autoreleaseFrequency: .never)
+
+    var _imageFetchTimestamp = Date.distantFuture
+
+    var  imageFetchTimestamp : Date {
+        get {
+            return imageFetchTimestampQueue.sync {
+                return _imageFetchTimestamp
+            }
+        }
+        set {
+            imageFetchTimestampQueue.sync {
+                _imageFetchTimestamp = newValue
+            }
+        }
+    }
+        
     let identifier = UUID()
 
     func hash(into hasher: inout Hasher) {
