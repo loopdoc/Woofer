@@ -20,10 +20,6 @@ class PoochCollectionViewController: UICollectionViewController {
     }
 
     weak var delegate : PoochCollectionViewControllerDelegate?
-
-    var poochPicturesByBreed : [Breed : [PoochPicture]] = [:]
-    
-    var poochImageSourcesByBreed : [Breed : [String]] = [:]
     
     var datasource : UICollectionViewDiffableDataSource<Breed, PoochPicture>! = nil
     

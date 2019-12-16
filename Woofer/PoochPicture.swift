@@ -30,7 +30,7 @@ final class PoochPicture : Comparable, Hashable {
     let urlString : String
 
     let imageQueue = DispatchQueue(label: "PoochPicture.imageQueue", qos: .userInteractive, attributes: [], autoreleaseFrequency: .never)
-    
+
     var _image : UIImage?
     var image : UIImage? {
         get {
@@ -39,8 +39,8 @@ final class PoochPicture : Comparable, Hashable {
             }
         }
         set {
-            return imageQueue.sync {
-                return _image = newValue
+            imageQueue.sync {
+                _image = newValue
             }
         }
     }
@@ -55,8 +55,8 @@ final class PoochPicture : Comparable, Hashable {
             }
         }
         set {
-            return thumbnailQueue.sync {
-                return _thumbnail = newValue
+            thumbnailQueue.sync {
+                _thumbnail = newValue
             }
         }
     }

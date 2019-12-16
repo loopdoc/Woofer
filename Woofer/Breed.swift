@@ -52,8 +52,23 @@ final class Breed : Hashable, PoochPictureDelegate {
     let name : String
     let subbreedName: String?
     
-    var poochPictures : [PoochPicture] = []
+    let poochPicturesQueue = DispatchQueue(label: "Breed.poochPicturesQueue", qos: .userInteractive, attributes: [], autoreleaseFrequency: .never)
     
+    var _poochPictures : [PoochPicture] = []
+    var poochPictures : [PoochPicture]  {
+        get {
+            return poochPicturesQueue.sync {
+                _poochPictures
+            }
+        }
+        set {
+            poochPicturesQueue.sync() {
+                _poochPictures = newValue
+            }
+        }
+    }
+    
+
     var displayName : String {
         if let subbreedName = subbreedName {
             return "\(subbreedName) \(name)"
